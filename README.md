@@ -1,75 +1,86 @@
-Dotfiles Backup & Restore Scripts
-Zestaw profesjonalnych skryptów Bash do automatyzacji procesu tworzenia kopii zapasowych i przywracania plików konfiguracyjnych (dotfiles), list pakietów i ustawień systemowych. Skrypty wykorzystują prywatne repozytorium GitHub jako bezpieczne miejsce do przechowywania zaszyfrowanych archiwów w formie GitHub Releases.
+# 💾 Dotfiles Backup & Restore Scripts
 
-Główne Funkcje
-Backup w Chmurze: Automatyczne tworzenie archiwum .tar.gz i wysyłanie go jako nowy Release do Twojego prywatnego repozytorium GitHub.
+Professional **Bash scripts** to automate the backup and restoration of your configuration files (dotfiles), system settings, and package lists.  
+Backups are securely stored as **GitHub Releases** in a **private repository**, optionally encrypted with GPG.
 
-Szyfrowanie GPG: Opcjonalne, w pełni zautomatyzowane szyfrowanie kopii zapasowych przy użyciu klucza publicznego GPG dla maksymalnego bezpieczeństwa.
+---
 
-Interaktywne Przywracanie: Skrypt restore-cloud.sh pobiera listę dostępnych backupów i pozwala wybrać, który z nich chcesz przywrócić.
+## ⚡ Key Features
 
-Profesjonalna Obsługa Błędów: Użycie trap i set -o pipefail zapewnia, że skrypt zatrzyma się natychmiast po wystąpieniu błędu, informując o problematycznej komendzie.
+- **☁️ Cloud Backup**: Automatically creates a `.tar.gz` archive and uploads it as a new Release to your private GitHub repository.  
+- **🔒 GPG Encryption**: Optional fully-automated encryption using your public GPG key for maximum security.  
+- **🛠️ Interactive Restore**: `restore-cloud.sh` fetches a list of available backups, allowing you to choose which one to restore.  
+- **⚠️ Robust Error Handling**: Uses `trap` and `set -o pipefail` to stop immediately on errors, showing the problematic command.  
+- **🧪 Dry-Run Mode**: Simulate the backup or restore process without making any changes using `--dry-run`.  
+- **⚙️ Flexible Configuration**: All paths, repository names, and GPG settings are managed in a single `backup_restore.config` file.  
+- **✅ Validation & Safety Checks**: Scripts verify dependencies, disk space, and ensure the repository is private.
 
-Tryb Testowy (--dry-run): Uruchom skrypty z flagą --dry-run, aby zasymulować cały proces bez wprowadzania jakichkolwiek zmian w systemie.
+---
 
-Elastyczna Konfiguracja: Wszystkie ścieżki, nazwa repozytorium i ustawienia GPG są zarządzane w jednym pliku backup_restore.config.
+## 📝 Requirements
 
-Walidacja i Bezpieczeństwo: Skrypty sprawdzają zależności, dostępną przestrzeń dyskową oraz weryfikują, czy repozytorium jest prywatne.
+- `bash`
+- `gh` – GitHub CLI
+- `jq` – for parsing JSON from `gh`
+- `gpg` (optional) – required only if you want encryption
+- `pv` (optional) – for progress bar during archiving
 
-Wymagania
+---
+
+## 🚀 Installation & Setup
+
+### 1. Create a Private GitHub Repository
+Create a new **private repository** on GitHub to store your backups.
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cd YOUR_REPO
+3. Make Scripts Executable
 bash
-
-gh - Oficjalny klient wiersza poleceń GitHub.
-
-jq - Do parsowania danych JSON z gh.
-
-gpg (opcjonalnie) - Wymagane tylko jeśli chcesz korzystać z szyfrowania.
-
-pv (opcjonalnie) - Do wyświetlania paska postępu podczas archiwizacji.
-
-Instalacja i Konfiguracja
-Utwórz Prywatne Repozytorium na GitHub
-Stwórz nowe, prywatne repozytorium na swoim koncie GitHub. Będzie ono służyło jako magazyn dla Twoich kopii zapasowych.
-
-Sklonuj Repozytorium
-
-git clone [https://github.com/TWOJA_NAZWA/TWOJE_REPO.git](https://github.com/TWOJA_NAZWA/TWOJE_REPO.git)
-cd TWOJE_REPO
-
-Nadaj Uprawnienia Wykonywania
-
+Copy code
 chmod +x backup-cloud.sh
 chmod +x restore-cloud.sh
+4. Configure backup_restore.config
+Open backup_restore.config and update the settings:
 
-** skonfiguruj backup_restore.config**
-Otwórz plik backup_restore.config i dostosuj go do swoich potrzeb:
+GH_REPO – your private repo name (e.g., "my-user/dotfiles-backup")
 
-GH_REPO: Ustaw nazwę swojego prywatnego repozytorium (np. "moj-user/dotfiles-backup").
+GPG_RECIPIENT_EMAIL – email of your public GPG key to enable encryption. Leave empty ("") to disable encryption.
 
-GPG_RECIPIENT_EMAIL: Podaj e-mail powiązany z Twoim kluczem publicznym GPG, aby włączyć szyfrowanie. Jeśli zostawisz puste (""), szyfrowanie będzie wyłączone.
+BACKUP_PATHS – list of files/directories to include in backup. Use $HOME for universal paths.
 
-BACKUP_PATHS: Zaktualizuj listę plików i katalogów, które chcesz dołączyć do kopii zapasowej. Używaj zmiennej $HOME, aby ścieżki były uniwersalne.
+⚡ Usage
+💾 Backup
+Run the backup script:
 
-Użycie
-Tworzenie Kopii Zapasowej
-Aby utworzyć nową kopię zapasową, uruchom skrypt backup-cloud.sh:
-
+bash
+Copy code
 ./backup-cloud.sh
+Packs the defined files
 
-Skrypt spakuje zdefiniowane pliki, zaszyfruje je (jeśli skonfigurowano) i wyśle do Twojego repozytorium na GitHub jako nowy Release.
+Encrypts them (if configured)
 
-Przywracanie z Kopii Zapasowej
-Aby przywrócić system z istniejącej kopii zapasowej, uruchom skrypt restore-cloud.sh:
+Uploads to GitHub as a new Release
 
+🔄 Restore
+Run the restore script:
+
+bash
+Copy code
 ./restore-cloud.sh
+Connects to GitHub
 
-Skrypt połączy się z GitHub, wyświetli listę 10 ostatnich backupów, a Ty będziesz mógł wybrać, który z nich pobrać i przywrócić.
+Lists the last 10 backups
 
-Tryb Testowy
-Aby zobaczyć, co zrobiłyby skrypty, bez dokonywania żadnych zmian, użyj flagi --dry-run:
+Allows you to choose which backup to download and restore
 
+🧪 Dry-Run Mode
+Simulate the actions without making changes:
+
+bash
+Copy code
 ./backup-cloud.sh --dry-run
 ./restore-cloud.sh --dry-run
-
-Licencja
-Ten projekt jest objęty licencją MIT.
+📄 License
+This project is licensed under the MIT License.
