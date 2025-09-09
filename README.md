@@ -1,6 +1,6 @@
 # 📦 github-release-dotfiles-backup
 
-![Project Banner](assets/banner.svg)
+![Project Banner](images/backup.svg)
 
 [![ShellCheck](https://img.shields.io/badge/shellcheck-passed-brightgreen)](https://www.shellcheck.net) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
