@@ -1,3 +1,7 @@
+![Project Banner](https://raw.githubusercontent.com/Xzar-x/images/refs/heads/main/IMG_20250909_222618.png)
+
+[![ShellCheck](https://img.shields.io/badge/shellcheck-passed-brightgreen)](https://www.shellcheck.net) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+
 # ⚙️ github-release-dotfiles-backup
 **Backup & restore your dotfiles, packages and tooling across multiple machines — using GitHub Releases.**  
 A lightweight, practical tool to *replicate your working environment* on several computers quickly and safely.
