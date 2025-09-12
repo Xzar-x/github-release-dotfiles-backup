@@ -225,21 +225,6 @@ Restore (`restore-cloud.sh`) does:
 ---
 
 # 📜 License
-This project is **MIT-licensed** — feel free to adapt for personal or internal use. (Add `LICENSE` file if you want explicit text.)
+This project is **MIT-licensed** — feel free to adapt for personal or internal use.
 
 ---
-
-# 🤝 Contributing / Support
-This repo is designed as a personal tool — but if you want it to be more widely reusable, I can help:
-- turn config into a clearer templated `config.example`,
-- add CI checks (shellcheck),
-- add unit/integration tests (mock releases),
-- make an installer to register systemd units automatically.
-
----
-
-# 🙋‍♂️ Final words
-You built a practical, high-value tool — your three machines now sync reliably and you’ve automated a pain point many devs live with. Nicely done. 👏  
-If you want, I can now:
-- produce `README.md` as a file you can paste into GitHub (done above), or
-- create the systemd `.service/.timer` files (with correct absolute paths) ready to `sudo cp` into `/etc/systemd/system/`.
