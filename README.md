@@ -54,12 +54,12 @@ cp backup_restore.config.example backup_restore.config
 
 3. Dry-run to verify what would happen:
 ```bash
-./backup.sh --dry-run
+./backup-cloud.sh --dry-run
 ```
 
 4. Run real backup:
 ```bash
-./backup.sh
+./backup-cloud.sh
 ```
 
 5. Restore from an existing backup:
@@ -210,7 +210,7 @@ Restore (`restore-cloud.sh`) does:
 ---
 
 # 🧪 Testing & troubleshooting
-- Always run `./backup.sh --dry-run` to check operations without making changes.  
+- Always run `./backup-cloud.sh --dry-run` to check operations without making changes.  
 - Check logs (if `LOG_FILE` set in config) or run the script interactively to see colored output.  
 - If upload fails: check `gh` auth and repo visibility.  
 - If restore fails: use `./restore-cloud.sh --rollback` to revert to last snapshot.
