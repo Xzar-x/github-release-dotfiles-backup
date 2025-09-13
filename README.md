@@ -48,7 +48,6 @@ cd github-release-dotfiles-backup
 
 2. Create and edit config:
 ```bash
-cp backup_restore.config.example backup_restore.config
 # edit backup_restore.config to point to your GH repo, backup paths and GPG recipient (optional)
 ```
 
@@ -107,7 +106,7 @@ Description=Run dotfiles backup (oneshot)
 [Service]
 Type=oneshot
 WorkingDirectory=/path/to/github-release-dotfiles-backup
-ExecStart=/path/to/github-release-dotfiles-backup/backup.sh
+ExecStart=/path/to/github-release-dotfiles-backup/backup-cloud.sh
 ```
 
 `/etc/systemd/system/backup.timer`
