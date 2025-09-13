@@ -1,64 +1,59 @@
-# shellcheck shell=zsh
-# Wersja 7.2 "Diamond": Ulepszone i bardziej niezawodne parsowanie poleceń.
-
-# NALEZY WKLEIC TEN KOD NA KONCU PLIKU ~/.zshrc
-
+shellcheck shell=zsh
+Version 7.2 "Diamond": Improved and more reliable command parsing.
+PASTE THIS CODE AT THE END OF YOUR ~/.zshrc FILE
 function log_specific_commands_precmd() {
-    # --- ŚCIEŻKI DO PLIKÓW LOGÓW (bez zmian) ---
-    local DEB_URL_LOG_FILE="$HOME/.log_deb_urls.txt"; local GIT_URL_LOG_FILE="$HOME/.log_git_urls.txt"
-    local PIP_LOG_FILE="$HOME/.log_pip_packages.txt"; local NPM_LOG_FILE="$HOME/.log_npm_global_packages.txt"
-    local GO_LOG_FILE="$HOME/.log_go_packages.txt"; local FLATPAK_LOG_FILE="$HOME/.log_flatpak_packages.txt"
-    local SNAP_LOG_FILE="$HOME/.log_snap_packages.txt"
-    touch "$DEB_URL_LOG_FILE" "$GIT_URL_LOG_FILE" "$PIP_LOG_FILE" "$NPM_LOG_FILE" "$GO_LOG_FILE" "$FLATPAK_LOG_FILE" "$SNAP_LOG_FILE"
+# --- LOG FILE PATHS (no changes) ---
+local DEB_URL_LOG_FILE="$HOME/.log_deb_urls.txt"; local GIT_URL_LOG_FILE="$HOME/.log_git_urls.txt"
+local PIP_LOG_FILE="$HOME/.log_pip_packages.txt"; local NPM_LOG_FILE="$HOME/.log_npm_global_packages.txt"
+local GO_LOG_FILE="$HOME/.log_go_packages.txt"; local FLATPAK_LOG_FILE="$HOME/.log_flatpak_packages.txt"
+local SNAP_LOG_FILE="$HOME/.log_snap_packages.txt"
+touch "$DEB_URL_LOG_FILE" "$GIT_URL_LOG_FILE" "$PIP_LOG_FILE" "$NPM_LOG_FILE" "$GO_LOG_FILE" "$FLATPAK_LOG_FILE" "$SNAP_LOG_FILE"
+local last_command
+# FIX: Clean the command from excess spaces
+last_command=$(fc -ln -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-    local last_command
-    # POPRAWKA: Czyszczenie polecenia z nadmiarowych spacji
-    last_command=$(fc -ln -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+case "$last_command" in
+    # FIX: Added aria2c and a better regex
+    (*wget*|*curl*|*axel*|*aria2c*)*.deb*)
+        local deb_url; deb_url=$(echo "$last_command" | grep -oE 'https?://[^[:space:]]+\.deb' | tail -n 1)
+        if [[ -n "$deb_url" ]] && ! grep -qFx "$deb_url" "$DEB_URL_LOG_FILE"; then echo "$deb_url" >> "$DEB_URL_LOG_FILE"; fi
+        ;;
 
-    case "$last_command" in
-        # POPRAWKA: Dodano aria2c i lepszy regex
-        (*wget*|*curl*|*axel*|*aria2c*)*.deb*)
-            local deb_url; deb_url=$(echo "$last_command" | grep -oE 'https?://[^[:space:]]+\.deb' | tail -n 1)
-            if [[ -n "$deb_url" ]] && ! grep -qFx "$deb_url" "$DEB_URL_LOG_FILE"; then echo "$deb_url" >> "$DEB_URL_LOG_FILE"; fi
-            ;;
+    # FIX: Improved, more versatile regex for URLs
+    *"git clone "*)
+        local git_url; git_url=$(echo "$last_command" | grep -oE '(git@[^[:space:]]+\.git|https?://[^[:space:]]+\.git|https?://github\.com/[^[:space:]/]+/[^[:space:]/]+|https?://gitlab\.com/[^[:space:]/]+/[^[:space:]/]+)' | head -n 1)
+        if [[ -n "$git_url" ]] && ! grep -qFx "$git_url" "$GIT_URL_LOG_FILE"; then echo "$git_url" >> "$GIT_URL_LOG_FILE"; fi
+        ;;
 
-        # POPRAWKA: Ulepszony, bardziej wszechstronny regex dla URL-i
-        *"git clone "*)
-            local git_url; git_url=$(echo "$last_command" | grep -oE '(git@[^[:space:]]+\.git|https?://[^[:space:]]+\.git|https?://github\.com/[^[:space:]/]+/[^[:space:]/]+|https?://gitlab\.com/[^[:space:]/]+/[^[:space:]/]+)' | head -n 1)
-            if [[ -n "$git_url" ]] && ! grep -qFx "$git_url" "$GIT_URL_LOG_FILE"; then echo "$git_url" >> "$GIT_URL_LOG_FILE"; fi
-            ;;
+    # FIX: Smart parsing of multiple packages and flags
+    *"pip"*" install "*)
+        if [[ "$last_command" != *"-r "* && "$last_command" != *"--requirement "* && "$last_command" != *"-e "* && "$last_command" != *"--editable "* ]]; then
+            local pip_packages; pip_packages=$(echo "$last_command" | sed -e 's/.*pip[0-9]*//' -e 's/install//' -e 's/--user//' -e 's/--upgrade//' -e 's/-U//' | grep -oE '[a-zA-Z0-9_.-]+([><=!~]+[0-9a-zA-Z.]+)?' | grep -v '^-')
+            while IFS= read -r package; do
+                if [[ -n "$package" ]] && ! grep -qFx "$package" "$PIP_LOG_FILE"; then echo "$package" >> "$PIP_LOG_FILE"; fi
+            done <<< "$pip_packages"
+        fi
+        ;;
 
-        # POPRAWKA: Inteligentne parsowanie wielu pakietów i flag
-        *"pip"*" install "*)
-            if [[ "$last_command" != *"-r "* && "$last_command" != *"--requirement "* && "$last_command" != *"-e "* && "$last_command" != *"--editable "* ]]; then
-                local pip_packages; pip_packages=$(echo "$last_command" | sed -e 's/.*pip[0-9]*//' -e 's/install//' -e 's/--user//' -e 's/--upgrade//' -e 's/-U//' | grep -oE '[a-zA-Z0-9_.-]+([><=!~]+[0-9a-zA-Z.]+)?' | grep -v '^-')
-                while IFS= read -r package; do
-                    if [[ -n "$package" ]] && ! grep -qFx "$package" "$PIP_LOG_FILE"; then echo "$package" >> "$PIP_LOG_FILE"; fi
-                done <<< "$pip_packages"
-            fi
-            ;;
+    # --- Remaining cases without changes ---
+    *"npm install "*"-g"*)
+        local npm_package; npm_package=$(echo "$last_command" | sed -e 's/npm//' -e 's/install//' -e 's/--global//' -e 's/-g//' -e 's/i//' | tr -s ' ' | xargs)
+        if [[ -n "$npm_package" ]] && ! grep -qFx "$npm_package" "$NPM_LOG_FILE"; then echo "$npm_package" >> "$NPM_LOG_FILE"; fi
+        ;;
+    *"go install "*)
+        local go_package; go_package=$(echo "$last_command" | awk -F'go install ' '{print $2}' | xargs)
+        if [[ -n "$go_package" ]] && ! grep -qFx "$go_package" "$GO_LOG_FILE"; then echo "$go_package" >> "$GO_LOG_FILE"; fi
+        ;;
+    *"flatpak install "*)
+        local flatpak_package; flatpak_package=$(echo "$last_command" | awk '{print $NF}' | grep -v '^-')
+        if [[ -n "$flatpak_package" ]] && ! grep -qFx "$flatpak_package" "$FLATPAK_LOG_FILE"; then echo "$flatpak_package" >> "$FLATPAK_LOG_FILE"; fi
+        ;;
+    *"snap install "*)
+        local snap_package; snap_package=$(echo "$last_command" | awk '{print $NF}' | grep -v '^-')
+        if [[ -n "$snap_package" ]] && ! grep -qFx "$snap_package" "$SNAP_LOG_FILE"; then echo "$snap_package" >> "$SNAP_LOG_FILE"; fi
+        ;;
+esac
 
-        # --- Reszta przypadków bez zmian ---
-        *"npm install "*"-g"*)
-            local npm_package; npm_package=$(echo "$last_command" | sed -e 's/npm//' -e 's/install//' -e 's/--global//' -e 's/-g//' -e 's/i//' | tr -s ' ' | xargs)
-            if [[ -n "$npm_package" ]] && ! grep -qFx "$npm_package" "$NPM_LOG_FILE"; then echo "$npm_package" >> "$NPM_LOG_FILE"; fi
-            ;;
-        *"go install "*)
-            local go_package; go_package=$(echo "$last_command" | awk -F'go install ' '{print $2}' | xargs)
-            if [[ -n "$go_package" ]] && ! grep -qFx "$go_package" "$GO_LOG_FILE"; then echo "$go_package" >> "$GO_LOG_FILE"; fi
-            ;;
-        *"flatpak install "*)
-            local flatpak_package; flatpak_package=$(echo "$last_command" | awk '{print $NF}' | grep -v '^-')
-            if [[ -n "$flatpak_package" ]] && ! grep -qFx "$flatpak_package" "$FLATPAK_LOG_FILE"; then echo "$flatpak_package" >> "$FLATPAK_LOG_FILE"; fi
-            ;;
-        *"snap install "*)
-            local snap_package; snap_package=$(echo "$last_command" | awk '{print $NF}' | grep -v '^-')
-            if [[ -n "$snap_package" ]] && ! grep -qFx "$snap_package" "$SNAP_LOG_FILE"; then echo "$snap_package" >> "$SNAP_LOG_FILE"; fi
-            ;;
-    esac
 }
-
 autoload -U add-zsh-hook
 add-zsh-hook precmd log_specific_commands_precmd
-
-
